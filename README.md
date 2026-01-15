@@ -3,16 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Neon Snake: Bug Free</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&display=swap" rel="stylesheet">
+  <title>Snake: Elegant Edition</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lato:wght@300;400&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-color: #0f172a;
-      --panel-color: #1e293b;
-      --accent-color: #7ef36a;
-      --accent-glow: rgba(126, 243, 106, 0.5);
-      --danger-color: #ff4757;
-      --text-color: #f8fafc;
+      --bg-color: #121212;
+      --panel-color: #1e1e1e;
+      --accent-color: #d4af37; /* Metallic Gold */
+      --secondary-accent: #f1c40f; /* Lighter Gold */
+      --danger-color: #c0392b; /* Deep Crimson */
+      --text-color: #e0e0e0;
+      --border-color: #333333;
     }
     body {
       margin: 0;
@@ -21,66 +22,62 @@
       align-items: center;
       min-height: 100vh;
       background-color: var(--bg-color);
-      background-image: 
-        linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-      background-size: 40px 40px;
-      font-family: 'Poppins', sans-serif;
+      /* Subtle noise texture instead of grid */
+      background-image: radial-gradient(#333 1px, transparent 0);
+      background-size: 20px 20px;
+      font-family: 'Lato', sans-serif;
       color: var(--text-color);
-      overflow: hidden; 
+      overflow: hidden;
     }
     .game-container {
       position: relative;
       background: var(--panel-color);
-      padding: 20px;
-      border-radius: 20px;
-      box-shadow: 
-        0 20px 50px rgba(0, 0, 0, 0.5),
-        0 0 0 1px rgba(255, 255, 255, 0.1);
+      padding: 25px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.8);
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 15px;
+      gap: 20px;
     }
     .hud {
       width: 100%;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 0 10px;
+      padding: 0 5px;
       box-sizing: border-box;
-      font-size: 14px;
-      color: #94a3b8;
-      font-weight: 600;
-    }
-    .score-box {
-        display: flex;
-        gap: 15px;
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #888;
     }
     .score-value {
-      font-size: 24px;
-      color: var(--text-color);
-      font-family: 'Courier New', monospace;
-    }
+      font-family: 'Playfair Display', serif;
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--accent-color);
+      margin-left: 5px;
+    }    
     .high-score {
-        color: #fbbf24; 
+        color: #888; 
     }
     canvas {
-      background: #0b1120;
-      border-radius: 8px;
-      box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
-      border: 2px solid #334155;
+      background: #181818;
+      border: 1px solid var(--accent-color); /* Gold Border */
+      box-shadow: 0 0 15px rgba(0,0,0,0.5);
       cursor: none;
     }
+    /* Overlay Styling */
     #overlay {
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(15, 23, 42, 0.85); 
-      backdrop-filter: blur(8px);
-      border-radius: 20px;
+      background: rgba(18, 18, 18, 0.9);
+      backdrop-filter: blur(5px);
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -89,109 +86,102 @@
       transition: opacity 0.3s ease;
     }
     .menu-content {
-      background: rgba(30, 41, 59, 0.95);
+      background: transparent;
       padding: 30px;
-      border-radius: 16px;
-      border: 1px solid rgba(255,255,255,0.1);
       text-align: center;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-      width: 280px;
+      width: 300px;
     }
     h1 {
-      font-size: 42px;
-      margin: 0 0 10px 0;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      background: linear-gradient(45deg, var(--accent-color), #4ade80);
+      font-family: 'Playfair Display', serif;
+      font-size: 48px;
+      margin: 0 0 20px 0;
+      color: var(--accent-color);
+      letter-spacing: 1px;
+      font-weight: 400;
+      /* Elegant gradient text */
+      background: linear-gradient(to bottom, #f1c40f, #bf953f);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      text-shadow: 0 4px 20px var(--accent-glow);
-    }  
+    }    
     h1.game-over-title {
-        background: linear-gradient(45deg, #ff4757, #ff6b81);
+        background: linear-gradient(to bottom, #ff5e57, #c0392b);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        text-shadow: 0 4px 20px rgba(255, 71, 87, 0.5);
-        font-size: 36px;
-    }
-    h1.paused-title {
-        background: linear-gradient(45deg, #60a5fa, #3b82f6);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        font-size: 36px;
+        font-size: 38px;
     }
     label {
-      font-size: 12px;
+      font-size: 10px;
       text-transform: uppercase;
-      letter-spacing: 1px;
-      color: #94a3b8;
+      letter-spacing: 3px;
+      color: #666;
       display: block;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
     }
     select {
       width: 100%;
-      padding: 12px;
-      background: #0f172a;
-      border: 1px solid #334155;
-      border-radius: 8px;
-      color: white;
-      font-family: inherit;
+      padding: 10px;
+      background: transparent;
+      border: 1px solid #555;
+      color: var(--accent-color);
+      font-family: 'Lato', sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 1px;
       cursor: pointer;
-      margin-bottom: 20px;
+      margin-bottom: 25px;
       outline: none;
-      transition: border-color 0.2s;
-    }   
-    select:hover, select:focus {
+      text-align: center;
+    }    
+    select:hover {
       border-color: var(--accent-color);
     }
     .btn-primary {
       width: 100%;
-      padding: 14px;
+      padding: 12px;
       background: var(--accent-color);
-      color: #0b1020;
+      color: #121212;
       border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      font-weight: 800;
+      font-family: 'Lato', sans-serif;
+      font-size: 12px;
+      letter-spacing: 2px;
+      font-weight: 700;
       text-transform: uppercase;
       cursor: pointer;
-      transition: all 0.2s;
-      box-shadow: 0 4px 15px var(--accent-glow);
-      margin-bottom: 10px;
+      transition: all 0.3s;
+      margin-bottom: 15px;
     }
     .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px var(--accent-glow);
-      filter: brightness(1.1);
+      background: #fff;
     }
     .btn-secondary {
       width: 100%;
       padding: 12px;
       background: transparent;
-      color: #94a3b8;
-      border: 2px solid #334155;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 600;
+      color: #666;
+      border: 1px solid #444;
+      font-family: 'Lato', sans-serif;
+      font-size: 11px;
+      letter-spacing: 2px;
       text-transform: uppercase;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.3s;
     }
     .btn-secondary:hover {
       border-color: var(--text-color);
       color: var(--text-color);
-      background: rgba(255,255,255,0.05);
     }
     #finalScoreDisplay {
-      font-size: 18px;
-      margin-bottom: 20px;
-      color: var(--danger-color);
-      font-weight: bold;
+      font-family: 'Playfair Display', serif;
+      font-size: 22px;
+      margin-bottom: 30px;
+      color: var(--text-color);
+      font-style: italic;
     }
     .tips {
-        margin-top: 15px;
-        font-size: 11px;
-        color: #64748b;
+        margin-top: 20px;
+        font-size: 10px;
+        color: #444;
+        letter-spacing: 1px;
+        text-transform: uppercase;
     }
     .hidden {
       display: none !important;
@@ -203,34 +193,35 @@
   <div class="game-container">
     <div class="hud">
       <div class="score-box">
-        <span>SCORE: <span id="scoreDisplay" class="score-value">000</span></span>
-        <span class="high-score">BEST: <span id="highScoreDisplay" class="score-value">000</span></span>
+        <span>Score <span id="scoreDisplay" class="score-value">0</span></span>
       </div>
-      <span>SPD: <span id="speedDisplay" style="color: var(--accent-color)">NORMAL</span></span>
+      <div class="score-box">
+         <span class="high-score">Best <span id="highScoreDisplay" class="score-value">0</span></span>
+      </div>
     </div>
     <canvas id="gameCanvas" width="400" height="400"></canvas>
     <div id="overlay">
-      <div class="menu-content">      
+      <div class="menu-content">    
         <div id="startScreen">
-          <h1>NEON SNAKE</h1>
-          <label for="speed">Select Difficulty</label>
+          <h1>The Snake</h1>
+          <label for="speed">Select Pace</label>
           <select id="speed">
-            <option value="250">Easy</option>
-            <option value="180" selected>Normal</option>
-            <option value="130">Hard</option>
-            <option value="90">Extreme</option>
+            <option value="250">Leisurely (Easy)</option>
+            <option value="180" selected>Standard (Normal)</option>
+            <option value="130">Rapid (Hard)</option>
+            <option value="90">Intense (Extreme)</option>
           </select>
-          <button class="btn-primary" onclick="startGame()">Start Game</button>
-          <div class="tips">Press SPACE to Pause</div>
+          <button class="btn-primary" onclick="startGame()">Begin</button>
+          <div class="tips">Spacebar to Pause</div>
         </div>
         <div id="gameOverScreen" class="hidden">
-          <h1 class="game-over-title">GAME OVER</h1>
+          <h1 class="game-over-title">Game Over</h1>
           <div id="finalScoreDisplay"></div>
           <button class="btn-primary" onclick="startGame()">Try Again</button>
-          <button class="btn-secondary" onclick="showMainMenu()">Main Menu</button>
+          <button class="btn-secondary" onclick="showMainMenu()">Return to Menu</button>
         </div>
-      <div id="pauseScreen" class="hidden">
-            <h1 class="paused-title">PAUSED</h1>
+        <div id="pauseScreen" class="hidden">
+            <h1 style="color: #fff; font-size: 32px;">Paused</h1>
             <button class="btn-primary" onclick="togglePause()">Resume</button>
             <button class="btn-secondary" onclick="quitToMenu()">Quit</button>
         </div>
@@ -251,7 +242,6 @@
     const speedSelect = document.getElementById("speed");
     const scoreEl = document.getElementById("scoreDisplay");
     const highScoreEl = document.getElementById("highScoreDisplay");
-    const speedEl = document.getElementById("speedDisplay");
     const finalScoreEl = document.getElementById("finalScoreDisplay");
 
     const gridSize = 20;
@@ -262,7 +252,7 @@
     let moveQueue = []; 
     let particles = [];
 
-    // --- AUDIO SYSTEM ---
+    // --- AUDIO SYSTEM (Retuned for elegance) ---
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     const audioCtx = new AudioContext();
 
@@ -276,21 +266,23 @@
         const now = audioCtx.currentTime;
 
         if (type === 'eat') {
-            osc.type = 'triangle';
-            osc.frequency.setValueAtTime(400, now);
+            // A soft "chime" sound instead of a beep
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(500, now);
             osc.frequency.exponentialRampToValueAtTime(800, now + 0.1);
-            gainNode.gain.setValueAtTime(0.3, now);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+            gainNode.gain.setValueAtTime(0.1, now);
+            gainNode.gain.linearRampToValueAtTime(0, now + 0.15);
             osc.start(now);
-            osc.stop(now + 0.1);
+            osc.stop(now + 0.15);
         } else if (type === 'die') {
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(200, now);
-            osc.frequency.exponentialRampToValueAtTime(50, now + 0.3);
-            gainNode.gain.setValueAtTime(0.3, now);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+            // A low hum for game over
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(100, now);
+            osc.frequency.linearRampToValueAtTime(50, now + 0.5);
+            gainNode.gain.setValueAtTime(0.2, now);
+            gainNode.gain.linearRampToValueAtTime(0, now + 0.5);
             osc.start(now);
-            osc.stop(now + 0.3);
+            osc.stop(now + 0.5);
         }
     }
 
@@ -298,27 +290,27 @@
     function loadHighScore() {
         const saved = localStorage.getItem('snakeHighScore');
         highScore = saved ? parseInt(saved) : 0;
-        highScoreEl.innerText = highScore.toString().padStart(3, '0');
+        highScoreEl.innerText = highScore;
     }
 
     function saveHighScore() {
         if (score > highScore) {
             highScore = score;
             localStorage.setItem('snakeHighScore', highScore);
-            highScoreEl.innerText = highScore.toString().padStart(3, '0');
+            highScoreEl.innerText = highScore;
         }
     }
 
-    // --- PARTICLE SYSTEM ---
-    function createParticles(x, y, color) {
-        for(let i = 0; i < 6; i++) {
+    // --- PARTICLE SYSTEM (Gold Dust) ---
+    function createParticles(x, y) {
+        for(let i = 0; i < 8; i++) {
             particles.push({
                 x: x + gridSize/2,
                 y: y + gridSize/2,
-                vx: (Math.random() - 0.5) * 5, 
-                vy: (Math.random() - 0.5) * 5, 
+                vx: (Math.random() - 0.5) * 4, 
+                vy: (Math.random() - 0.5) * 4, 
                 life: 1.0, 
-                color: color
+                color: "#d4af37" // Gold dust
             });
         }
     }
@@ -328,14 +320,14 @@
             let p = particles[i];
             p.x += p.vx;
             p.y += p.vy;
-            p.life -= 0.05; 
+            p.life -= 0.04; 
             
             if(p.life <= 0) {
                 particles.splice(i, 1);
             } else {
                 ctx.globalAlpha = p.life;
                 ctx.fillStyle = p.color;
-                ctx.fillRect(p.x, p.y, 3, 3);
+                ctx.fillRect(p.x, p.y, 2, 2); // Tiny dust particles
                 ctx.globalAlpha = 1.0;
             }
         }
@@ -344,7 +336,7 @@
     // --- GAME LOGIC ---
 
     function initGame() {
-      // Start slightly offset so we don't spawn on top of default apple
+      // Start centered
       snake = [{ x: 200, y: 200 }, { x: 180, y: 200 }, { x: 160, y: 200 }];
       dx = gridSize;
       dy = 0;
@@ -406,24 +398,18 @@
       pauseScreen.classList.add("hidden");
       gameOverScreen.classList.remove("hidden");
       
-      finalScoreEl.innerText = "FINAL SCORE: " + score;
+      finalScoreEl.innerText = "Final Score: " + score;
     }
 
-    // --- UPDATED LOGIC HERE ---
     function randomApple() {
       let newApple;
       let collision;
-
-      // Keep generating a random position until we find one that
-      // DOES NOT collide with any part of the snake
       do {
           collision = false;
           newApple = {
               x: Math.floor(Math.random() * tileCount) * gridSize,
               y: Math.floor(Math.random() * tileCount) * gridSize
           };
-
-          // Check against snake body
           for (let part of snake) {
               if (part.x === newApple.x && part.y === newApple.y) {
                   collision = true;
@@ -431,26 +417,16 @@
               }
           }
       } while (collision);
-
       return newApple;
     }
-    // -------------------------
 
     function updateScoreUI() {
-        scoreEl.innerText = score.toString().padStart(3, '0');
-        
-        let speedText = "MAX";
-        if(currentSpeed > 150) speedText = "SLOW";
-        else if(currentSpeed > 100) speedText = "MED";
-        else if(currentSpeed > 60) speedText = "FAST";
-        
-        speedEl.innerText = speedText;
+        scoreEl.innerText = score;
     }
 
     function increaseSpeed() {
         const maxSpeedCap = 50; 
         let speedDecay = 0;
-
         if (currentSpeed > 150) speedDecay = 5;
         else if (currentSpeed > 100) speedDecay = 2;
         else speedDecay = 1;
@@ -459,17 +435,6 @@
             currentSpeed -= speedDecay;
             clearInterval(gameInterval);
             gameInterval = setInterval(gameLoop, currentSpeed);
-        }
-    }
-
-    function drawGrid() {
-        ctx.strokeStyle = "#1e293b"; 
-        ctx.lineWidth = 1;
-        for (let x = 0; x <= canvas.width; x += gridSize) {
-            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
-        }
-        for (let y = 0; y <= canvas.height; y += gridSize) {
-            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
         }
     }
 
@@ -503,7 +468,7 @@
       if (head.x === apple.x && head.y === apple.y) {
         score++;
         playSound('eat');
-        createParticles(apple.x, apple.y, "#ff4757"); 
+        createParticles(apple.x, apple.y); 
         apple = randomApple();
         increaseSpeed();
         updateScoreUI();
@@ -511,33 +476,41 @@
         snake.pop();
       }
 
-      // Drawing
-      ctx.fillStyle = "#0b1120";
+      // --- ELEGANT DRAWING ---
+      
+      // Clear with matte background
+      ctx.fillStyle = "#181818";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-      drawGrid();
+      
+      // Subtle Grid (Dots)
+      ctx.fillStyle = "#222"; 
+      for (let x = 0; x <= canvas.width; x += gridSize) {
+          for (let y = 0; y <= canvas.height; y += gridSize) {
+              ctx.fillRect(x-1, y-1, 2, 2);
+          }
+      }
       
       updateParticles();
 
-      // Apple
-      ctx.fillStyle = "#ff4757"; 
-      ctx.shadowBlur = 15;
-      ctx.shadowColor = "#ff4757";
+      // Apple (Deep Crimson, no glow)
+      ctx.fillStyle = "#c0392b"; 
       ctx.fillRect(apple.x + 2, apple.y + 2, gridSize - 4, gridSize - 4);
-      ctx.shadowBlur = 0; 
 
-      // Snake
+      // Snake (Gold Gradient Effect)
       for (let i = 0; i < snake.length; i++) {
         if (i === 0) {
-            ctx.fillStyle = "#a3ff90";
-            ctx.shadowBlur = 10;
-            ctx.shadowColor = "#7ef36a";
+            ctx.fillStyle = "#d4af37"; // Metallic Gold Head
         } else {
-            ctx.fillStyle = "#7ef36a";
-            ctx.shadowBlur = 0;
+            // Alternating subtle gold shades for body
+            ctx.fillStyle = i % 2 === 0 ? "#bca136" : "#a88f32";
         }
-        ctx.fillRect(snake[i].x + 1, snake[i].y + 1, gridSize - 2, gridSize - 2);
+        ctx.fillRect(snake[i].x, snake[i].y, gridSize, gridSize);
+        
+        // Slight border to separate segments
+        ctx.strokeStyle = "#181818";
+        ctx.lineWidth = 1;
+        ctx.strokeRect(snake[i].x, snake[i].y, gridSize, gridSize);
       }
-      ctx.shadowBlur = 0; 
     }
 
     document.addEventListener("keydown", e => {
@@ -568,8 +541,18 @@
       }
     });
     
-    drawGrid();
+    // Initial setup
     loadHighScore();
+    
+    // Draw empty grid on load
+    ctx.fillStyle = "#181818";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#222"; 
+      for (let x = 0; x <= canvas.width; x += gridSize) {
+          for (let y = 0; y <= canvas.height; y += gridSize) {
+              ctx.fillRect(x-1, y-1, 2, 2);
+          }
+      }
   </script>
 </body>
 </html>
