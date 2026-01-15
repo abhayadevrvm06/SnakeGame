@@ -6,7 +6,6 @@
   <title>Snake: Retro Collection</title>
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
   <style>
-    /* --- THEME DEFINITIONS --- */
     :root {
       /* Default to 'nokia' variables initially */
       --bg-color: #c7f0d8;
@@ -19,10 +18,9 @@
       --glow: 0;
       --font-family: 'Press Start 2P', cursive;
     }
-    /* THEME: NOKIA 3310 */
     [data-theme="nokia"] {
-      --bg-color: #9fac95; /* The outer casing color */
-      --panel-color: #c7f0d8; /* The screen backlight */
+      --bg-color: #9fac95; 
+      --panel-color: #c7f0d8; 
       --border-color: #43523d;
       --accent-color: #43523d;
       --snake-color: #43523d;
@@ -30,18 +28,16 @@
       --text-color: #43523d;
       --glow: 0;
     }
-    /* THEME: GAME BOY */
     [data-theme="gameboy"] {
       --bg-color: #8b956d;
-      --panel-color: #9bbc0f; /* Lightest green */
-      --border-color: #0f380f; /* Darkest green */
+      --panel-color: #9bbc0f; 
+      --border-color: #0f380f; 
       --accent-color: #306230;
       --snake-color: #0f380f;
       --apple-color: #0f380f;
       --text-color: #0f380f;
       --glow: 0;
     }
-    /* THEME: NEON (Cyberpunk) */
     [data-theme="neon"] {
       --bg-color: #050505;
       --panel-color: #111;
@@ -52,7 +48,6 @@
       --text-color: #fff;
       --glow: 15px;
     }
-    /* THEME: CRT ARCADE */
     [data-theme="arcade"] {
       --bg-color: #1a1a2e;
       --panel-color: #16213e;
@@ -92,7 +87,6 @@
       flex-direction: column;
       align-items: center;
     }
-    /* Scanline Effect Overlay */
     .scanlines {
       position: absolute;
       top: 0;
@@ -121,7 +115,7 @@
     }
     canvas {
       background: var(--panel-color);
-      image-rendering: pixelated; /* Keeps pixels sharp */
+      image-rendering: pixelated; 
     }
     #overlay {
       position: absolute;
@@ -129,17 +123,19 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(0,0,0,0.7);
+      background: rgba(0,0,0,0.8);
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      z-index: 30;
+      z-index: 30; /* Highest layer so buttons work */
     }
     .menu-content {
       text-align: center;
-      color: #fff; /* Always white text on overlay for readability */
+      color: #fff; 
       width: 300px;
+      /* Ensure clicks register */
+      pointer-events: auto; 
     }
     h1 {
       font-size: 30px;
@@ -178,6 +174,12 @@
       text-transform: uppercase;
       margin-bottom: 10px;
       box-shadow: 4px 4px 0px #555;
+      position: relative;
+    }
+    button:hover {
+      background: #f0f0f0;
+      top: 1px;
+      box-shadow: 3px 3px 0px #555;
     }
     button:active {
       transform: translate(2px, 2px);
@@ -190,7 +192,7 @@
 
   <div class="game-shell">
     <div class="game-container">
-      <div class="scanlines"></div>  
+      <div class="scanlines"></div>      
       <div class="hud">
         <div>SCORE: <span id="scoreDisplay">0</span></div>
         <div>BEST: <span id="highScoreDisplay">0</span></div>
@@ -216,17 +218,18 @@
               </select>
             </div>
             <button onclick="startGame()">INSERT COIN</button>
+            <div style="font-size: 8px; color: #aaa; margin-top: 10px;">SPACE or ESC to Pause</div>
           </div>
           <div id="gameOverScreen" class="hidden">
             <h1>GAME OVER</h1>
             <p style="margin-bottom: 20px">SCORE: <span id="finalScore"></span></p>
             <button onclick="startGame()">RETRY</button>
-            <button onclick="showMainMenu()">MENU</button>
+            <button onclick="quitToMenu()">MENU</button>
           </div>
           <div id="pauseScreen" class="hidden">
             <h1>PAUSED</h1>
             <button onclick="togglePause()">RESUME</button>
-            <button onclick="quitToMenu()">QUIT</button>
+            <button onclick="quitToMenu()">QUIT TO TITLE</button>
           </div>
         </div>
       </div>
@@ -253,7 +256,7 @@
     let dx, dy, currentSpeed;
     let moveQueue = [];
 
-    // --- AUDIO (8-bit beeps) ---
+    // --- AUDIO (8-bit) ---
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     const audioCtx = new AudioContext();
 
@@ -265,7 +268,7 @@
         gainNode.connect(audioCtx.destination);
         const now = audioCtx.currentTime;
 
-        osc.type = 'square'; // 8-bit sound wave
+        osc.type = 'square'; 
 
         if (type === 'eat') {
             osc.frequency.setValueAtTime(600, now);
@@ -288,9 +291,11 @@
     function changeTheme() {
       const selectedTheme = themeSelect.value;
       body.setAttribute("data-theme", selectedTheme);
-      // Redraw immediately to reflect changes if game is paused/stopped
       if (!running || isPaused) {
-        draw(); 
+        // Redraw to show changes even if stopped
+        ctx.fillStyle = getComputedStyle(body).getPropertyValue('--panel-color');
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        if(snake) draw(); 
       }
     }
 
@@ -313,7 +318,6 @@
     }
 
     function startGame() {
-      // Ensure audio context is ready
       if (audioCtx.state === 'suspended') audioCtx.resume();
       
       currentSpeed = parseInt(speedSelect.value);
@@ -328,12 +332,21 @@
       gameInterval = setInterval(gameLoop, currentSpeed);
     }
 
-    function showMainMenu() {
+    function quitToMenu() {
+        running = false;
+        isPaused = false; // Reset pause state
+        clearInterval(gameInterval);
+        
+        // Reset the game visuals so user sees they are back at start
+        initGame(); 
+        running = false; // Stop it immediately after init so it doesn't move
+        draw(); // Draw the reset position once
+        
+        // UI Switching
         overlay.classList.remove("hidden");
         startScreen.classList.remove("hidden");
         gameOverScreen.classList.add("hidden");
         pauseScreen.classList.add("hidden");
-        draw(); // Draw one frame so it's not blank
     }
 
     function togglePause() {
@@ -344,6 +357,7 @@
             clearInterval(gameInterval);
             overlay.classList.remove("hidden");
             pauseScreen.classList.remove("hidden");
+            startScreen.classList.add("hidden"); // Ensure start is hidden
         } else {
             overlay.classList.add("hidden");
             pauseScreen.classList.add("hidden");
@@ -365,6 +379,7 @@
         document.getElementById("finalScore").innerText = score;
         overlay.classList.remove("hidden");
         gameOverScreen.classList.remove("hidden");
+        pauseScreen.classList.add("hidden");
     }
 
     function randomApple() {
@@ -423,7 +438,6 @@
     }
 
     function draw() {
-      // Get colors from CSS variables
       const style = getComputedStyle(body);
       const bgColor = style.getPropertyValue('--panel-color');
       const snakeColor = style.getPropertyValue('--snake-color');
@@ -434,7 +448,7 @@
       ctx.fillStyle = bgColor;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Apply Glow (if theme has it)
+      // Apply Glow
       ctx.shadowBlur = parseInt(glow);
       ctx.shadowColor = snakeColor;
 
@@ -442,12 +456,9 @@
       ctx.fillStyle = snakeColor;
       for(let i=0; i<snake.length; i++) {
         let part = snake[i];
-        
-        // "Gap" style for Nokia/Gameboy to make it look like separate pixels
         if (themeSelect.value === 'nokia' || themeSelect.value === 'gameboy') {
              ctx.fillRect(part.x + 1, part.y + 1, gridSize - 2, gridSize - 2);
         } else {
-            // Smooth for Arcade/Neon
              ctx.fillRect(part.x, part.y, gridSize, gridSize);
         }
       }
@@ -456,22 +467,32 @@
       ctx.shadowColor = appleColor;
       ctx.fillStyle = appleColor;
       if (themeSelect.value === 'nokia') {
-         // Hollow square for Nokia apple
          ctx.fillRect(apple.x + 4, apple.y + 4, gridSize - 8, gridSize - 8);
          ctx.strokeRect(apple.x + 2, apple.y + 2, gridSize - 4, gridSize - 4);
       } else {
          ctx.fillRect(apple.x + 2, apple.y + 2, gridSize - 4, gridSize - 4);
       }
       
-      ctx.shadowBlur = 0; // Reset glow
+      ctx.shadowBlur = 0; 
     }
 
     // Input Handling
     document.addEventListener("keydown", e => {
-      if(e.code === "Space") {
-        if(!running && startScreen.classList.contains('hidden')) return; // Game over state
-        if(!running) startGame();
-        else togglePause();
+      // Allow Escape key to toggle pause or quit game over screen
+      if(e.code === "Space" || e.code === "Escape") {
+        if(!running && startScreen.classList.contains('hidden') && gameOverScreen.classList.contains('hidden')) {
+             // Paused state
+             togglePause();
+        } else if (!running && !gameOverScreen.classList.contains('hidden')) {
+             // Game Over state -> restart
+             startGame();
+        } else if(!running) {
+             // Start screen -> start
+             startGame();
+        } else {
+             // Running -> pause
+             togglePause();
+        }
         return;
       }
       
@@ -479,7 +500,6 @@
       let lastDx = dx; 
       let lastDy = dy;
       
-      // Peek at queue if exists
       if(moveQueue.length > 0) {
         lastDx = moveQueue[moveQueue.length-1].x;
         lastDy = moveQueue[moveQueue.length-1].y;
@@ -500,7 +520,8 @@
 
     // Start
     loadHighScore();
-    changeTheme(); // Apply initial theme
+    initGame(); 
+    draw(); // Initial draw
   </script>
 </body>
 </html>
